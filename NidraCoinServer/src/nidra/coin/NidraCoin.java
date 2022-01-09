@@ -5,6 +5,8 @@
  */
 package nidra.coin;
 
+import java.io.PrintStream;
+
 /**
  *
  * @author adria
@@ -15,11 +17,17 @@ public class NidraCoin {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        VistaServer vista = new VistaServer();
+        vista.setTitle("Server");//Titulo de la ventana
+        vista.setLocationRelativeTo(null);
+        vista.setVisible(true);
+        PrintStream printStream = new PrintStream(new CustomOutputStream(vista.log));
+        System.setOut(printStream);
         Thread thread1 = new Thread() {
             @Override
             public void run() {
                BlockChain bc = new BlockChain();
-               new NodeServer(bc);
+               new NodeServer(bc,vista);
 //               bc.createTransaction(new Transactions("adrian","gerardo",65));
 //               bc.createTransaction(new Transactions("venganito","juanito",50));
 //                System.out.println("MINANDO...");

@@ -18,6 +18,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +37,6 @@ public class BlockChain {
     int diff = 5;
     ArrayList<Transactions> pending = new ArrayList<>();
     int reward = 1;
-    ArrayList<String> Nodes = new ArrayList<>();
     int lastSave = 0;
     int lastSavep = 0;
 
@@ -47,10 +49,8 @@ public class BlockChain {
             @Override
             public void run() {
                 File file = new File("Chain.bin");
-                boolean correct = readnodes();
-                if (correct == true) {
-                    if (!file.exists()) {
-                        file = Multiple.RequestFile("Chain", Nodes,file);
+//                    if (!file.exists()) {
+                        file = Multiple.RequestFileFirstTime("Chain", file);
                         if (file != null) {
                             try {
                                 FileInputStream fis = new FileInputStream(file);
@@ -61,7 +61,7 @@ public class BlockChain {
                                 }
 
                             } catch (FileNotFoundException ex) {
-                                System.out.println("Archivo no encontrado");
+                                System.out.println("Archivo no encontrado 1");
 //                        Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
                             } catch (IOException ex) {
                                 System.out.println("Chain vacia");
@@ -83,13 +83,13 @@ public class BlockChain {
 //                    Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
                         }
 //                    }
-                    File file2 = new File("Pending.bin");
+                        File file2 = new File("Pending.bin");
 //                    if (!file2.exists()) {
-                        Multiple.RequestFile("Pending", Nodes,file2);
-                    }
+                        Multiple.RequestFileFirstTime("Pending", file2);
+//                    }
                     generarchaintxt(true);
                     generarpendingtxt(true);
-                }
+//                    Multiple.ConnectToRed();
             }
         };
         thread2.start();
@@ -210,7 +210,7 @@ public class BlockChain {
                 b = (Block) ois.readObject();
                 if (b != null) {
                     if (addtochain == true) {
-                        System.out.println("added="+b.toString());
+                        System.out.println("added=" + b.toString());
                         chain.add(b);
                         lastSave++;
                     }
@@ -236,17 +236,18 @@ public class BlockChain {
         }
     }
 
-    private void Writegenesis(File file) {
+    public static void Writegenesis(File file) {
         FileOutputStream ous = null;
         try {
-            ous = new FileOutputStream(file,true);
+            ous = new FileOutputStream(file, true);
             ObjectOutputStream oos = new ObjectOutputStream(ous);
-            oos.writeObject(this.createGenesisBlock());
+            oos.writeObject(createGenesisBlock());
             oos.flush();
+            oos.close();
             System.out.println("Write genesis");
-            lastSave = 0;
+//            lastSave = 0;
         } catch (FileNotFoundException ex) {
-            System.out.println("Archivo no encontrado");
+            System.out.println("Archivo no encontrado Genesis");
 //            Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             System.out.println("Error IO");
@@ -261,37 +262,7 @@ public class BlockChain {
         }
     }
 
-    public boolean readnodes() {
-        File file = new File("Nodes.txt");
-        if (file.exists()) {
-            BufferedReader bufferreader = null;
-            try {
-                bufferreader = new BufferedReader(new FileReader(file));
-                String line = bufferreader.readLine();
-                do {
-                    Nodes.add(line);
-                    line = bufferreader.readLine();
-                } while (line != null);
-                return true;
-            } catch (FileNotFoundException ex) {
-                System.out.println("Archivo no encontrado");
-//                Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                System.out.println("Error IO");
-//                Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                try {
-                    bufferreader.close();
-                } catch (IOException ex) {
-                    System.out.println("Error IO");
-//                    Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        return false;
-    }
-
-    public Block createGenesisBlock() {
+    public static Block createGenesisBlock() {
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         ArrayList<Transactions> trans = new ArrayList<>();
         trans.add(new Transactions("", "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIVm4lSY8jAxo5M8IvkKWxRBgMSSejmMFnMv7Eqd2oHUFJtI1DVpY0q2JBP779CDeBtwAJ4somijzOXMhwJEDZUCAwEAAQ==", 650000));
@@ -300,7 +271,7 @@ public class BlockChain {
     }
 
     public Block getlastblock() {
-        return this.chain.get(this.chain.size() - 1);
+            return this.chain.get(this.chain.size() - 1);
     }
 
 //    public void minePendingTransactions(String address) {
@@ -321,7 +292,6 @@ public class BlockChain {
 //        this.updatependingbin(false);
 //        this.updatependingtxt(rewardtrans, false);
 //    }
-
     public void minedblockget(Block block, String address) {
         boolean valid = validatehash(block);
         if (valid == true) {
@@ -329,20 +299,20 @@ public class BlockChain {
             System.out.println("BLOQUE MINADO!");
             updatecbin();
 //            ArrayList<Transactions> pendingx = new ArrayList<>();
-            System.out.println("block="+block.getTransactions().toString());
-            try{
-            for (Transactions t: block.getTransactions()){
-                for(Transactions tp: pending){
-                    if(tp.getFromAddress().equals(t.getFromAddress()) && tp.getToAddress().equals(t.getToAddress())  && tp.getAmount() == t.getAmount()) {
-                        pending.remove(tp);
+            System.out.println("trans=" + block.getTransactions().toString());
+            try {
+                for (Transactions t : block.getTransactions()) {
+                    for (Transactions tp : pending) {
+                        if (tp.getFromAddress().equals(t.getFromAddress()) && tp.getToAddress().equals(t.getToAddress()) && tp.getAmount() == t.getAmount()) {
+                            pending.remove(tp);
+                        }
+
                     }
-                            
                 }
+            } catch (Exception ex) {
+
             }
-            }catch(Exception ex){
-                
-            }
-            System.out.println("pending="+pending.toString());
+            System.out.println("pending=" + pending.toString());
 //            pending = new ArrayList<>();
             Transactions rewardtrans = new Transactions("", address, this.reward);
             this.pending.add(rewardtrans);
@@ -355,8 +325,8 @@ public class BlockChain {
 
     public boolean validatehash(Block block) {
         if (block.calchash().equals(block.getHash()) && getlastblock().getHash().equals(block.getPreviousHash())) {
-            if (block.getTransactions()!=null){
-            return true;
+            if (block.getTransactions() != null) {
+                return true;
             }
         }
         return false;
