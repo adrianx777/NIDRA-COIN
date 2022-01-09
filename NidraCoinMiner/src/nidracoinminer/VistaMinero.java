@@ -64,6 +64,7 @@ public class VistaMinero extends javax.swing.JFrame {
         jLabel2.setText("IP:");
 
         ip.setText("ec2-18-212-12-245.compute-1.amazonaws.com");
+        ip.setToolTipText("");
         ip.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ipActionPerformed(evt);

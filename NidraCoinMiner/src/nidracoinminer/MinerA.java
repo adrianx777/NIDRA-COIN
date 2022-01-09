@@ -124,6 +124,7 @@ public class MinerA implements ActionListener {
         ObjectOutputStream oos = null;
         try {
             DataOutputStream fs = new DataOutputStream(sc.getOutputStream());
+            System.out.println("sendblock");
             fs.writeUTF("MinedBlock" + "EOF");
             oos = new ObjectOutputStream(fs);
             oos.writeObject(block);
@@ -147,7 +148,7 @@ public class MinerA implements ActionListener {
         }
         return false;
     }
-
+String anteriormensaje="";
     private void requestblock() {
         try {
 //            Socket news = new Socket(ip,port);
@@ -158,24 +159,26 @@ public class MinerA implements ActionListener {
             ObjectInputStream ois = new ObjectInputStream(is);
             ArrayList<Object> obj = (ArrayList<Object>) ois.readObject();
             String lastmensaje = (String) ois.readObject();
+            if (!lastmensaje.equals(anteriormensaje) ){
+                anteriormensaje = lastmensaje;
             vista.log.setText(vista.log.getText() + "\n" + lastmensaje);
             lastblock = (Block) obj.get(0);
             pending = (ArrayList) obj.get(1);
             diff = (int) obj.get(2);
 
             if (lastmensaje.contains(vista.wallet.getText())) {
-                    mined += 1;
-                    vista.mined.setText(String.valueOf(mined));
-                }
-                System.out.println("diff=" + diff);
-
-            }catch (IOException ex) {
+                mined += 1;
+                vista.mined.setText(String.valueOf(mined));
+            }
+            System.out.println("diff=" + diff);
+            }
+        } catch (IOException ex) {
             System.out.println("Error");
             Logger.getLogger(MinerA.class.getName()).log(Level.SEVERE, null, ex);
-        }catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(MinerA.class.getName()).log(Level.SEVERE, null, ex);
         }
-        }
+    }
 
 //    private void Get() {
 //        while (true) {
@@ -196,28 +199,25 @@ public class MinerA implements ActionListener {
 //            }
 //        }
 //    }
-        @Override
-        public void actionPerformed
-        (ActionEvent e
-        
-            ) {
+    @Override
+    public void actionPerformed(ActionEvent e) {
         if (e.getSource() == vista.connectb && activo == false) {
-                vista.ip.setEnabled(false);
-                vista.port.setEnabled(false);
-                vista.wallet.setEnabled(false);
-                vista.connectb.setEnabled(false);
-                this.ip = vista.ip.getText();
-                this.port = Integer.valueOf(vista.port.getText());
-                this.wallet = vista.wallet.getText();
-                Thread thread1 = new Thread() {
-                    @Override
-                    public void run() {
-                        Server();
-                    }
-                };
-                thread1.start();
-            }
-
+            vista.ip.setEnabled(false);
+            vista.port.setEnabled(false);
+            vista.wallet.setEnabled(false);
+            vista.connectb.setEnabled(false);
+            this.ip = vista.ip.getText();
+            this.port = Integer.valueOf(vista.port.getText());
+            this.wallet = vista.wallet.getText();
+            Thread thread1 = new Thread() {
+                @Override
+                public void run() {
+                    Server();
+                }
+            };
+            thread1.start();
         }
 
     }
+
+}

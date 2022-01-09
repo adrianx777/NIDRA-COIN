@@ -164,6 +164,7 @@
     <Component class="javax.swing.JTextField" name="ip">
       <Properties>
         <Property name="text" type="java.lang.String" value="ec2-18-212-12-245.compute-1.amazonaws.com"/>
+        <Property name="toolTipText" type="java.lang.String" value=""/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ipActionPerformed"/>
