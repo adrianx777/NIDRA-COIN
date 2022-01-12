@@ -12,3 +12,6 @@ Si quieres tener un nodo conectado a la red, simplemente busca tu ip publica en 
 
 COMO MINAR:
 Copia la direccion publica de tu wallet al iniciar el minero, y has click en Connect, este se conectara al nodo que este en su casilla, en este caso al servidor de amazon. El minado es lento debido a la red, la seguridad, y para evitar la desvalorizacion rapida de la moneda, aun asi deberia ser facil conseguir unas cuantas miles de monedas en solo unas horas. La red esta en pruebas asi que son posibles algunos problemas.
+
+PAGINA WEB: En el siguiente servidor podeis ver los datos de las carteras que querais, y los ultimos 10 movimientos de bloques, ademas del numero actual de monedas en curso.
+http://90.77.135.154:8080/
