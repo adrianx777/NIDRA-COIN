@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -34,23 +35,31 @@ import java.util.logging.Logger;
 public class BlockChain {
 
     ArrayList<Block> chain = new ArrayList<>();
-    int diff = 5;
+//    int diff = 5+(LocalDate.now().getYear()-2022);
     ArrayList<Transactions> pending = new ArrayList<>();
-    int reward = 1;
+    double reward = 1;
     int lastSave = 0;
     int lastSavep = 0;
+    VistaServer vista;
+    BigInteger mined  = new BigInteger("0");
 
     public ArrayList<Block> getChain() {
         return chain;
+    }    
+    
+    public int getDiff() {
+        return 5+(LocalDate.now().getYear()-2022);
     }
+    
 
-    public BlockChain() {
+    public BlockChain(VistaServer vista) {
+        this.vista = vista;
         Thread thread2 = new Thread() {
             @Override
             public void run() {
                 File file = new File("Chain.bin");
 //                    if (!file.exists()) {
-                        file = Multiple.RequestFileFirstTime("Chain", file);
+                        file = Multiple.RequestFileFirstTime("Chain", file,vista);
                         if (file != null) {
                             try {
                                 FileInputStream fis = new FileInputStream(file);
@@ -85,7 +94,7 @@ public class BlockChain {
 //                    }
                         File file2 = new File("Pending.bin");
 //                    if (!file2.exists()) {
-                        Multiple.RequestFileFirstTime("Pending", file2);
+                        Multiple.RequestFileFirstTime("Pending", file2,vista);
 //                    }
                     generarchaintxt(true);
                     generarpendingtxt(true);
@@ -94,10 +103,6 @@ public class BlockChain {
         };
         thread2.start();
 
-    }
-
-    public int getDiff() {
-        return diff;
     }
 
     public ArrayList<Transactions> getPending() {
@@ -210,7 +215,7 @@ public class BlockChain {
                 b = (Block) ois.readObject();
                 if (b != null) {
                     if (addtochain == true) {
-                        System.out.println("added=" + b.toString());
+//                        System.out.println("added=" + b.toString());
                         chain.add(b);
                         lastSave++;
                     }
@@ -235,6 +240,7 @@ public class BlockChain {
             }
         }
     }
+    
 
     public static void Writegenesis(File file) {
         FileOutputStream ous = null;
@@ -273,30 +279,15 @@ public class BlockChain {
     public Block getlastblock() {
             return this.chain.get(this.chain.size() - 1);
     }
-
-//    public void minePendingTransactions(String address) {
-//        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-//        Block block = new Block(timestamp, this.pending, null);
-//        block.setPreviousHash(this.getlastblock().getHash());
-//        block.Mine(diff, getlastblock());
-//        System.out.println("valido=" + validatehash(block));
-//        pushblock(block);
-//        System.out.println("BLOQUE MINADO!");
-//        updatecbin();
-////        pending = new ArrayList<>();
-//        for (Transactions t : block.getTransactions()) {
-//            this.pending.remove(t);
-//        }
-//        Transactions rewardtrans = new Transactions("", address, this.reward);
-//        this.pending.add(rewardtrans);
-//        this.updatependingbin(false);
-//        this.updatependingtxt(rewardtrans, false);
-//    }
+    
     public void minedblockget(Block block, String address) {
-        boolean valid = validatehash(block);
+        boolean valid = Multiple.validatehash(block,this.getlastblock());
         if (valid == true) {
             pushblock(block);
-            System.out.println("BLOQUE MINADO!");
+            String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+            System.out.println("BLOQUE MINADO! ("+timestamp+")");
+            mined = mined.add(new BigInteger("1"));
+            vista.mined.setText("Mined: "+mined.toString()+" NDC");
             updatecbin();
 //            ArrayList<Transactions> pendingx = new ArrayList<>();
             System.out.println("trans=" + block.getTransactions().toString());
@@ -323,14 +314,7 @@ public class BlockChain {
         }
     }
 
-    public boolean validatehash(Block block) {
-        if (block.calchash().equals(block.getHash()) && getlastblock().getHash().equals(block.getPreviousHash())) {
-            if (block.getTransactions() != null) {
-                return true;
-            }
-        }
-        return false;
-    }
+    
 
     public void createTransaction(Transactions trans) {
         this.pending.add(trans);

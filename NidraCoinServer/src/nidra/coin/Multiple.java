@@ -6,6 +6,7 @@
 package nidra.coin;
 
 import Pack1.Block;
+import Pack1.Transactions;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,8 +39,8 @@ import java.util.logging.Logger;
  */
 public class Multiple {
 
-
-    public static File RequestFileFirstTime(String name, File filee) {
+    public static File RequestFileFirstTime(String name, File filee,VistaServer vista) {
+        vista.bar.setVisible(true);
         final int puerto = 9001;
         ArrayList<String> Nodes = readnodes();
         ArrayList<Object[]> lista = new ArrayList<>();
@@ -68,11 +69,14 @@ public class Multiple {
                     byte[] byteArray = new byte[1024];
                     byteArray = fi.readNBytes(1024);
                     for (int n = 0; n < extend; n++) {
+                        int x = (int)(n*100/extend);
+                        vista.bar.setValue(x);
                         fos.write(byteArray);
                         byteArray = fi.readNBytes(1024);
                     }
                     fos.write(byteArray);
                 }
+                vista.bar.setValue(100);
                 fos.close();
                 sc.close();
                 System.out.println(name + " Descargado");
@@ -147,6 +151,7 @@ public class Multiple {
             }
         }
         System.out.println("FILE=" + file.getPath());
+        vista.bar.setVisible(false);
         return file;
     }
 
@@ -164,11 +169,20 @@ public class Multiple {
 
     public static boolean validatehash(Block block, Block lastblock) {
         if (block.calchash().equals(block.getHash()) && lastblock.getHash().equals(block.getPreviousHash())) {
-            if (block.getTransactions() != null) {
+            if (block.getTransactions() != null && ValidReward(block)) {
                 return true;
             }
         }
         return false;
+    }
+    
+    public static boolean ValidReward(Block b){
+        for(Transactions t: b.getTransactions()){
+            if(t.getFromAddress().equals("") && t.getAmount()!=1){
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean validatechainfile(File file) {
@@ -254,6 +268,21 @@ public class Multiple {
             }
         }
         return null;
+    }
+    
+    public static String genbarra(int n,int max){
+        String s = "";
+        String e = "";
+        for(int i=0;i<max;i++){
+        e = e+" ";
+        }
+        for(int i=0;i<n;i++){
+        s = s+"=";
+        }
+        String x = e;
+        x = e.substring(n, max);
+        String nr = "["+s+x+"]\r";
+        return nr;
     }
 
 }

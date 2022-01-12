@@ -39,7 +39,7 @@ public class NodeServer {
 
     ArrayList<Socket> AlmacenSocketW;
     ArrayList<Socket> SocketWaitingW;
-    String NodeName = "ANode";
+    String NodeName = "SpainAdrianNode";
     String lastmensaje = "No messages";
 
     BlockChain bc;
@@ -243,7 +243,7 @@ public class NodeServer {
                     ObjectOutputStream oos = new ObjectOutputStream(fs);
                     oos.writeObject(block);
                     oos.writeObject(address);
-                    if (bc.validatehash(block) == true) {
+                    if (Multiple.validatehash(block,bc.getlastblock()) == true) {
                         validaciones = validaciones + 1;
                     }
                 } catch (IOException ex) {
@@ -259,7 +259,7 @@ public class NodeServer {
                 }
             } else {
                 System.out.println("isme!");
-                if (bc.validatehash(block) == true) {
+                if (Multiple.validatehash(block,bc.getlastblock()) == true) {
                     validaciones = validaciones + 1;
                 }
             }
@@ -329,7 +329,7 @@ public class NodeServer {
                                         ObjectInputStream ois = new ObjectInputStream(is);
                                         Block block = (Block) ois.readObject();
                                         String address = (String) ois.readObject();
-                                        if (bc.validatehash(block) == true) {
+                                        if (Multiple.validatehash(block,bc.getlastblock()) == true) {
                                             lastmensaje = address + " Mined: " + block.getHash();
                                             DataOutputStream fs = new DataOutputStream(s.getOutputStream());
                                             fs.writeUTF("VALIDO");
